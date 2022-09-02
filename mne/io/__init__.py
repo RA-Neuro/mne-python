@@ -32,6 +32,7 @@ from . import persyst
 from . import eeglab
 from . import pick
 from . import nihon
+from . import yi
 
 from .array import RawArray
 from .besa import read_evoked_besa
@@ -58,6 +59,7 @@ from .fieldtrip import (read_raw_fieldtrip, read_epochs_fieldtrip,
                         read_evoked_fieldtrip)
 from .nihon import read_raw_nihon
 from ._read_raw import read_raw
+from .yi import read_yi_hdf5
 
 # for backward compatibility
 from .fiff import Raw
