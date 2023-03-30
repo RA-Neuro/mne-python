@@ -313,22 +313,27 @@ def _compose_meas_info(hdf5_file, acquisition=None):
             )]) for chan in acquisition_ch_names
         ]
     info['nchan'] = len(info['chs'])
-    trans = acquisition['ccs_to_scs_transform'][...]
-    trans[0:3,3] /=1000. # mm->m conversion for translations in affine transform
-    info['dev_head_t'] = Transform('meg', 'head', trans)
-    all_points = hdf5_file[YI.PATH_HEAD_GEOMETRY]['head_shape'][...]
-    all_points /=1000. # mm->m conversion
-    nas_p = hdf5_file[YI.PATH_FIDUCIAL_GEOMETRY]['nas/location'][...].squeeze()
-    nas_p /= 1000.
-    lpa_p = hdf5_file[YI.PATH_FIDUCIAL_GEOMETRY]['lpa/location'][...].squeeze()
-    lpa_p /= 1000.
-    rpa_p = hdf5_file[YI.PATH_FIDUCIAL_GEOMETRY]['rpa/location'][...].squeeze()
-    rpa_p /= 1000.
-    hpi_p = np.zeros([5,3])
-    for coil in hdf5_file[YI.PATH_COIL_GEOMETRY]:
-        hpi_p[int(coil)-1,:] = hdf5_file[YI.PATH_COIL_GEOMETRY][str(coil)+'/location'][...][0,:]
-    hpi_p /= 1000.
-    info['dig'] = _make_dig_points(nasion=nas_p,lpa=lpa_p,rpa=rpa_p, hpi = hpi_p,extra_points=all_points,)
+    try:
+        trans = acquisition['ccs_to_scs_transform'][...]
+        trans[0:3,3] /=1000. # mm->m conversion for translations in affine transform
+        info['dev_head_t'] = Transform('meg', 'head', trans)
+        all_points = hdf5_file[YI.PATH_HEAD_GEOMETRY]['head_shape'][...]
+        all_points /=1000. # mm->m conversion
+        nas_p = hdf5_file[YI.PATH_FIDUCIAL_GEOMETRY]['nas/location'][...].squeeze()
+        nas_p /= 1000.
+        lpa_p = hdf5_file[YI.PATH_FIDUCIAL_GEOMETRY]['lpa/location'][...].squeeze()
+        lpa_p /= 1000.
+        rpa_p = hdf5_file[YI.PATH_FIDUCIAL_GEOMETRY]['rpa/location'][...].squeeze()
+        rpa_p /= 1000.
+        hpi_p = np.zeros([5,3])
+        for coil in hdf5_file[YI.PATH_COIL_GEOMETRY]:
+            hpi_p[int(coil)-1,:] = hdf5_file[YI.PATH_COIL_GEOMETRY][str(coil)+'/location'][...][0,:]
+        hpi_p /= 1000.
+        info['dig'] = _make_dig_points(nasion=nas_p,lpa=lpa_p,rpa=rpa_p, hpi = hpi_p,extra_points=all_points,)
+    except:
+        trans = np.identity(4)
+        print('\n WARNING: NO HEAD GEOMETRY FOUND!\n Proceeding with identity transform. \n')
+
     start_date_time = datetime.strptime(acquisition.attrs['start_time'].split('.')[0], '%Y-%m-%dT%H:%M:%S')
     info['meas_date'] = start_date_time.replace(tzinfo=timezone.utc)
     return info
